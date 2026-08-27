@@ -1,9 +1,6 @@
 package backend.example.backend.module.auth;
 
-import backend.example.backend.module.auth.dto.AuthenticationRequest;
-import backend.example.backend.module.auth.dto.AuthenticationResponse;
-import backend.example.backend.module.auth.dto.IntrospectRequest;
-import backend.example.backend.module.auth.dto.IntrospectResponse;
+import backend.example.backend.module.auth.dto.*;
 import backend.example.backend.module.user.User;
 import backend.example.backend.module.user.UserRepository;
 import com.nimbusds.jose.*;
@@ -28,6 +25,7 @@ import java.util.Date;
 import java.time.temporal.ChronoUnit;
 import java.util.StringJoiner;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -128,8 +126,56 @@ public class AuthenticationService {
         }
     }
 
-    public void logout()
+    public String generateRefreshToken(String email)
     {
+        String refreshToken = UUID.randomUUID().toString();
+        stringRedisTemplate.opsForValue().set(refreshToken, email, 7, TimeUnit.DAYS);
+
+        return refreshToken;
+    }
+
+    public AuthenticationResponse refreshToken(RefreshTokenRequest request)
+    {
+        String refreshToken = request.getRefreshToken();
+        String email = stringRedisTemplate.opsForValue().get(refreshToken);
+
+        if (email == null)
+        {
+            throw new RuntimeException("");
+        }
+
+        stringRedisTemplate.delete(refreshToken);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow();
+
+        String newAccessToken = generateAccessToken(user);
+        String newRefreshToken = generateRefreshToken(email);
+
+        return AuthenticationResponse.builder()
+                .authenticated(true)
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .build();
+    }
+
+    public void logout(LogoutRequest request) throws ParseException, JOSEException {
+        var signToken = verifyToken(request.getToken());
+        String jit = signToken.getJWTClaimsSet().getJWTID();
+        Date expiryTime = signToken.getJWTClaimsSet().getExpirationTime();
+
+        long remainingTime = expiryTime.getTime() - System.currentTimeMillis();
+
+        if (remainingTime > 0)
+        {
+            stringRedisTemplate.opsForValue().set(jit, "invalidated token",
+                    remainingTime, TimeUnit.MILLISECONDS);
+        }
+
+        if (request.getRefreshToken() == null || request.getRefreshToken().trim().isEmpty())
+        {
+            stringRedisTemplate.delete(request.getRefreshToken());
+        }
     }
 
     private String buildScope(User user)
