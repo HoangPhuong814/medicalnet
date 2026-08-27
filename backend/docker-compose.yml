@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  postgres_db:
+    # Sử dụng image có sẵn pgvector để hỗ trợ Chat AI/RAG sau này
+    image: ankane/pgvector:latest
+    container_name: medical_net_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1108
+      POSTGRES_DB: medical_net
+    ports:
+      - "5432:5432"
+    volumes:
+      # Mount volume để không bị mất dữ liệu khi xóa container
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
