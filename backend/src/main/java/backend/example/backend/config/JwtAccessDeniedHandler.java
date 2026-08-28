@@ -1,6 +1,7 @@
 package backend.example.backend.config;
 
 import backend.example.backend.common.dto.ApiResponse;
+import backend.example.backend.common.exception.ErrorCode;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,12 +17,14 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
     public void handle(HttpServletRequest request,
                        HttpServletResponse response,
                        AccessDeniedException accessDeniedException) throws IOException, ServletException {
+        ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
+
         response.setStatus(403);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
         ApiResponse apiResponse = ApiResponse.builder()
-                .code(403)
-                .message("forbidden")
+                .code(errorCode.getCode())
+                .message(errorCode.getMessage())
                 .build();
 
         ObjectMapper objectMapper = new ObjectMapper();
