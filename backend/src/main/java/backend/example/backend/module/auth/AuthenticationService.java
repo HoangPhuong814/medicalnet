@@ -19,6 +19,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
 import java.time.Instant;
@@ -44,9 +45,7 @@ public class AuthenticationService {
 
         try {
             verifyToken(token);
-        }
-        catch (RuntimeException e)
-        {
+        } catch (RuntimeException e) {
             isValid = false;
         }
 
@@ -63,32 +62,27 @@ public class AuthenticationService {
         var verified = signedJWT.verify(verifier);
 
         String jit = signedJWT.getJWTClaimsSet().getJWTID();
-        if (Boolean.TRUE.equals(stringRedisTemplate.hasKey(jit)))
-        {
+        if (Boolean.TRUE.equals(stringRedisTemplate.hasKey(jit))) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
-        if (!verified || expiryTime.before(new Date()))
-        {
+        if (!verified || expiryTime.before(new Date())) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
         return signedJWT;
     }
 
-    public AuthenticationResponse authenticate(AuthenticationRequest request)
-    {
+    public AuthenticationResponse authenticate(AuthenticationRequest request) {
         var user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
-        if (request.getPassword() != null || request.getPassword().trim().isEmpty())
-        {
+        if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
             throw new AppException(ErrorCode.INVALID_PASSWORD);
         }
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
 
         boolean isAuthenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
-        if (!isAuthenticated)
-        {
+        if (!isAuthenticated) {
             throw new AppException(ErrorCode.INVALID_PASSWORD);
         }
         var accessToken = generateAccessToken(user);
@@ -101,8 +95,7 @@ public class AuthenticationService {
                 .build();
     }
 
-    public String generateAccessToken(User user)
-    {
+    public String generateAccessToken(User user) {
         JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS512);
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                 .subject(user.getEmail())
@@ -110,9 +103,9 @@ public class AuthenticationService {
                 .issueTime(new Date())
                 .expirationTime(new Date(
                         Instant.now().plus(1, ChronoUnit.HOURS)
-                        .toEpochMilli()))
+                                .toEpochMilli()))
                 .jwtID(UUID.randomUUID().toString())
-                .claim("scope", "medicalNet")
+                .claim("scope", buildScope(user))
                 .build();
         Payload payload = new Payload(claimsSet.toJSONObject());
         JWSObject jwsObject = new JWSObject(jwsHeader, payload);
@@ -127,21 +120,18 @@ public class AuthenticationService {
         }
     }
 
-    public String generateRefreshToken(String email)
-    {
+    public String generateRefreshToken(String email) {
         String refreshToken = UUID.randomUUID().toString();
         stringRedisTemplate.opsForValue().set(refreshToken, email, 7, TimeUnit.DAYS);
 
         return refreshToken;
     }
 
-    public AuthenticationResponse refreshToken(RefreshTokenRequest request)
-    {
+    public AuthenticationResponse refreshToken(RefreshTokenRequest request) {
         String refreshToken = request.getRefreshToken();
         String email = stringRedisTemplate.opsForValue().get(refreshToken);
 
-        if (email == null)
-        {
+        if (email == null) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
@@ -167,21 +157,28 @@ public class AuthenticationService {
 
         long remainingTime = expiryTime.getTime() - System.currentTimeMillis();
 
-        if (remainingTime > 0)
-        {
+        if (remainingTime > 0) {
             stringRedisTemplate.opsForValue().set(jit, "invalidated token",
                     remainingTime, TimeUnit.MILLISECONDS);
         }
 
-        if (request.getRefreshToken() == null || request.getRefreshToken().trim().isEmpty())
-        {
+        if (request.getRefreshToken() != null && !request.getRefreshToken().trim().isEmpty()) {
             stringRedisTemplate.delete(request.getRefreshToken());
         }
     }
 
-    private String buildScope(User user)
-    {
+    private String buildScope(User user) {
         StringJoiner stringJoiner = new StringJoiner(" ");
+
+        if (!CollectionUtils.isEmpty(user.getRoles())) {
+            user.getRoles().forEach(role -> {
+                stringJoiner.add("ROLE_" + role.getName());
+                if (!CollectionUtils.isEmpty(role.getPermissions())) {
+                    role.getPermissions().forEach(permission -> stringJoiner.add(permission.getName()));
+                }
+            });
+        }
+
         return stringJoiner.toString();
     }
 }
