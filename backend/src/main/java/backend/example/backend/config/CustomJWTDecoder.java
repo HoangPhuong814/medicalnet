@@ -4,6 +4,8 @@ import backend.example.backend.module.auth.AuthenticationService;
 import backend.example.backend.module.auth.dto.IntrospectRequest;
 import com.nimbusds.jose.JOSEException;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -21,25 +23,22 @@ import java.util.Objects;
 public class CustomJWTDecoder implements JwtDecoder {
     @Value("${jwt.signer-key}")
     String signerKey;
-    AuthenticationService authenticationService;
+    private final AuthenticationService authenticationService;
     private NimbusJwtDecoder nimbusJwtDecoder = null;
+
     @Override
     public Jwt decode(String token) throws JwtException {
         try {
             var response = authenticationService.introspect(IntrospectRequest.builder()
-                            .token(token)
+                    .token(token)
                     .build());
-            if (!response.isValid())
-            {
+            if (!response.isValid()) {
                 throw new JwtException("Token Invalid");
             }
-        }
-        catch (JOSEException | ParseException e)
-        {
+        } catch (JOSEException | ParseException e) {
             throw new JwtException(e.getMessage());
         }
-        if (Objects.isNull(nimbusJwtDecoder))
-        {
+        if (Objects.isNull(nimbusJwtDecoder)) {
             SecretKeySpec spec = new SecretKeySpec(signerKey.getBytes(), "HS512");
             nimbusJwtDecoder = NimbusJwtDecoder
                     .withSecretKey(spec)

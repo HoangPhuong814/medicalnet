@@ -25,18 +25,17 @@ import javax.crypto.SecretKeyFactory;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final String[] PUBLIC_POST_ENDPOINTS = {
-      "auth/login", "auth/logout", "auth/introspect", "auth/refresh"
+        "/auth/login", "/auth/logout", "/auth/introspect", "/auth/refresh", "/users/create"
     };
 
     private final String[] PUBLIC_GET_ENDPOINTS = {
         "/ping"
     };
 
-    private CustomJWTDecoder customJWTDecoder;
+    private final CustomJWTDecoder customJWTDecoder;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity)
-    {
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
         httpSecurity.authorizeHttpRequests(req -> req
