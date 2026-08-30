@@ -5,14 +5,13 @@ import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
 
-@Builder
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserResponse {
-    String id;
-    String email;
+public class UserUpdateRequest {
+    String password;
     String fullName;
     String gender;
     LocalDate dateOfBirth;

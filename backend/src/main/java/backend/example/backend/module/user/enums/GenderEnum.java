@@ -1,4 +1,4 @@
-package backend.example.backend.module.user;
+package backend.example.backend.module.user.enums;
 
 public enum GenderEnum {
     Male,

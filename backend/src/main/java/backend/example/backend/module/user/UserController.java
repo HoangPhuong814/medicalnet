@@ -1,5 +1,6 @@
 package backend.example.backend.module.user;
 
+import backend.example.backend.common.dto.ApiResponse;
 import backend.example.backend.module.user.dto.UserCreateRequest;
 import backend.example.backend.module.user.dto.UserResponse;
 import lombok.AccessLevel;
@@ -15,27 +16,40 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserController {
     UserService userService;
+
     @PostMapping("/create")
-    public UserResponse createUser(@RequestBody UserCreateRequest request)
-    {
-        return userService.createUser(request);
+    public ApiResponse<UserResponse> createUser(@RequestBody UserCreateRequest request) {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.createUser(request))
+                .build();
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<UserResponse> getUser(@PathVariable String id) {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.getUser(id))
+                .build();
     }
 
     @GetMapping
-    public UserResponse getUser(@RequestParam String id)
-    {
-        return userService.getUser(id);
+    public ApiResponse<List<UserResponse>> getAllUsers() {
+        return ApiResponse.<List<UserResponse>>builder()
+                .result(userService.getAllUsers())
+                .build();
     }
 
-    @GetMapping
-    public List<UserResponse> getAllUsers()
-    {
-        return userService.getAllUsers();
+    @PutMapping("/{id}")
+    public ApiResponse<UserResponse> updateUser(@PathVariable String id, @RequestBody UserUpdateRequest request) {
+        return ApiResponse.<UserResponse>builder()
+                .result(userService.updateUser(id, request))
+                .build();
     }
 
-    @DeleteMapping
-    public void deleteUser(@RequestParam String id)
-    {
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteUser(@PathVariable String id) {
         userService.deleteUser(id);
+        return ApiResponse.<Void>builder()
+                .message("User deleted successfully")
+                .build();
     }
 }
