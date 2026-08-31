@@ -16,6 +16,8 @@ public enum ErrorCode {
     PERMISSION_NOT_FOUND(2001, "permission not found", HttpStatus.NOT_FOUND),
     ROLE_EXISTED(2002, "role existed", HttpStatus.BAD_REQUEST),
     PERMISSION_EXISTED(2003, "permission existed", HttpStatus.BAD_REQUEST),
+    SPECIALITIES_EXISTED(2004, "specialities existed", HttpStatus.BAD_REQUEST),
+    SPECIALITIES_NOT_FOUND(2005, "specialities not found", HttpStatus.NOT_FOUND),
     UNAUTHENTICATED(5555,"Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(5050, "You don't have permission", HttpStatus.FORBIDDEN),
     EXISTED_DATA(5055, "Data already exists", HttpStatus.BAD_REQUEST);

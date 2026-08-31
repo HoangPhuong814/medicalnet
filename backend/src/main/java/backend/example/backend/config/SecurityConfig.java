@@ -29,7 +29,7 @@ public class SecurityConfig {
     };
 
     private final String[] PUBLIC_GET_ENDPOINTS = {
-        "/ping"
+        "/ping", "/specialities/**"
     };
 
     private final CustomJWTDecoder customJWTDecoder;
