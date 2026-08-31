@@ -3,6 +3,8 @@ package backend.example.backend.module.user;
 import backend.example.backend.common.dto.ApiResponse;
 import backend.example.backend.module.user.dto.UserCreateRequest;
 import backend.example.backend.module.user.dto.UserResponse;
+import backend.example.backend.module.user.dto.UserUpdateRequest;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -39,7 +41,8 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<UserResponse> updateUser(@PathVariable String id, @RequestBody UserUpdateRequest request) {
+    public ApiResponse<UserResponse> updateUser(@PathVariable String id,
+                                                @RequestBody @Valid UserUpdateRequest request) {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.updateUser(id, request))
                 .build();
