@@ -1,4 +1,4 @@
-package backend.example.backend.module.specialitiy;
+package backend.example.backend.module.speciality;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

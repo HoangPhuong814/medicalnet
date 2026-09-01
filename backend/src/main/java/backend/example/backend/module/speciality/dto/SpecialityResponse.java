@@ -1,5 +1,5 @@
 
-package backend.example.backend.module.specialitiy.dto;
+package backend.example.backend.module.speciality.dto;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;

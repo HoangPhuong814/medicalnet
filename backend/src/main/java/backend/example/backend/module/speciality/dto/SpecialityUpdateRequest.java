@@ -1,6 +1,7 @@
 
-package backend.example.backend.module.specialitiy.dto;
+package backend.example.backend.module.speciality.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -10,6 +11,7 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SpecialityUpdateRequest {
+    @NotBlank(message = "Speciality name is required")
     String name;
     String description;
     String iconUrl;

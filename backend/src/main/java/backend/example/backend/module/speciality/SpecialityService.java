@@ -1,10 +1,10 @@
-package backend.example.backend.module.specialitiy;
+package backend.example.backend.module.speciality;
 
 import backend.example.backend.common.exception.AppException;
 import backend.example.backend.common.exception.ErrorCode;
-import backend.example.backend.module.specialitiy.dto.SpecialityCreateRequest;
-import backend.example.backend.module.specialitiy.dto.SpecialityResponse;
-import backend.example.backend.module.specialitiy.dto.SpecialityUpdateRequest;
+import backend.example.backend.module.speciality.dto.SpecialityCreateRequest;
+import backend.example.backend.module.speciality.dto.SpecialityResponse;
+import backend.example.backend.module.speciality.dto.SpecialityUpdateRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -51,6 +51,12 @@ public class SpecialityService {
     {
         Speciality speciality = specialityRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.SPECIALITIES_NOT_FOUND));
+
+        if (!speciality.getName().equals(request.getName()) &&
+                specialityRepository.existsByName(request.getName()))
+        {
+            throw new AppException(ErrorCode.SPECIALITIES_EXISTED);
+        }
 
         specialityMapper.updateSpeciality(speciality, request);
 

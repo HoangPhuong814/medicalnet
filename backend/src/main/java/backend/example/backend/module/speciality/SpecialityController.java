@@ -1,9 +1,9 @@
-package backend.example.backend.module.specialitiy;
+package backend.example.backend.module.speciality;
 
 import backend.example.backend.common.dto.ApiResponse;
-import backend.example.backend.module.specialitiy.dto.SpecialityCreateRequest;
-import backend.example.backend.module.specialitiy.dto.SpecialityResponse;
-import backend.example.backend.module.specialitiy.dto.SpecialityUpdateRequest;
+import backend.example.backend.module.speciality.dto.SpecialityCreateRequest;
+import backend.example.backend.module.speciality.dto.SpecialityResponse;
+import backend.example.backend.module.speciality.dto.SpecialityUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class SpecialityController
     SpecialityService specialityService;
 
     @PostMapping("/create")
-    public ApiResponse<SpecialityResponse> createSpeciality(@RequestBody SpecialityCreateRequest request)
+    public ApiResponse<SpecialityResponse> createSpeciality(@RequestBody @Valid SpecialityCreateRequest request)
     {
         var result = specialityService.createSpeciality(request);
 

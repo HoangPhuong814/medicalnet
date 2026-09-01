@@ -1,8 +1,8 @@
-package backend.example.backend.module.specialitiy;
+package backend.example.backend.module.speciality;
 
-import backend.example.backend.module.specialitiy.dto.SpecialityCreateRequest;
-import backend.example.backend.module.specialitiy.dto.SpecialityResponse;
-import backend.example.backend.module.specialitiy.dto.SpecialityUpdateRequest;
+import backend.example.backend.module.speciality.dto.SpecialityCreateRequest;
+import backend.example.backend.module.speciality.dto.SpecialityResponse;
+import backend.example.backend.module.speciality.dto.SpecialityUpdateRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 
