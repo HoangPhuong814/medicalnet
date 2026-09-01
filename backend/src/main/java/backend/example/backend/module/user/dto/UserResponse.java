@@ -15,5 +15,6 @@ public class UserResponse {
     String email;
     String fullName;
     String gender;
+    boolean isActive;
     LocalDate dateOfBirth;
 }

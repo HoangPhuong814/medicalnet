@@ -42,6 +42,7 @@ public class UserService {
                     return roleRepository.save(newRole);
                 });
         user.setRoles(Set.of(role));
+        user.setActive(true);
 
         return userMapper.toUserResponse(userRepository.save(user));
     }
