@@ -8,6 +8,8 @@ import backend.example.backend.module.speciality.dto.SpecialityUpdateRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,7 @@ public class SpecialityService {
     SpecialityMapper specialityMapper;
 
     @PreAuthorize("hasRole('ADMIN')")
+    @CacheEvict(value = "specialities", allEntries = true)
     public SpecialityResponse createSpeciality(SpecialityCreateRequest request)
     {
         if (specialityRepository.existsByName(request.getName()))
@@ -33,11 +36,13 @@ public class SpecialityService {
         return specialityMapper.toSpecialityResponse(specialityRepository.save(speciality));
     }
 
+    @Cacheable(value = "specialities", key = "'all'")
     public List<SpecialityResponse> getAllSpecialities()
     {
         return specialityMapper.toListSpecialityResponse(specialityRepository.findAll());
     }
 
+    @Cacheable(value = "speciality", key = "#id")
     public SpecialityResponse getSpeciality(Long id)
     {
         Speciality speciality = specialityRepository.findById(id)
@@ -46,6 +51,7 @@ public class SpecialityService {
         return specialityMapper.toSpecialityResponse(speciality);
     }
 
+    @CacheEvict(value = {"specialities", "speciality"}, allEntries = true)
     @PreAuthorize("hasRole('ADMIN')")
     public SpecialityResponse updateSpeciality(Long id, SpecialityUpdateRequest request)
     {
@@ -63,6 +69,7 @@ public class SpecialityService {
         return specialityMapper.toSpecialityResponse(specialityRepository.save(speciality));
     }
 
+    @CacheEvict(value = {"specialities", "speciality"}, allEntries = true)
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteSpeciality(Long id)
     {
