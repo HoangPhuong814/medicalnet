@@ -29,13 +29,13 @@ public class SecurityConfig {
     };
 
     private final String[] PUBLIC_GET_ENDPOINTS = {
-        "/ping", "/specialities", "/specialities/**"
+        "/ping", "/specialities", "/specialities/**", "/doctors", "/doctors/**"
     };
 
     private final CustomJWTDecoder customJWTDecoder;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) {
         httpSecurity.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
         httpSecurity.authorizeHttpRequests(req -> req
