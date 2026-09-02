@@ -66,7 +66,7 @@ public class SpecialityController
         specialityService.deleteSpeciality(id);
 
         return ApiResponse.<Void>builder()
-                .message("Specialities deleted successfully")
+                .message("Speciality deleted successfully")
                 .build();
     }
 }
