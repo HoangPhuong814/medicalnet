@@ -20,6 +20,9 @@ public enum ErrorCode {
     PERMISSION_EXISTED(2003, "permission existed", HttpStatus.BAD_REQUEST),
     SPECIALITIES_EXISTED(2004, "specialities existed", HttpStatus.BAD_REQUEST),
     SPECIALITIES_NOT_FOUND(2005, "specialities not found", HttpStatus.NOT_FOUND),
+    SCHEDULE_EXISTED(3001, "Work schedule already exists for this date", HttpStatus.BAD_REQUEST),
+    SCHEDULE_NOT_FOUND(3002, "Work schedule not found", HttpStatus.NOT_FOUND),
+    INVALID_TIME_RANGE(3003, "Start time must be before end time", HttpStatus.BAD_REQUEST),
     UNAUTHENTICATED(5555,"Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(5050, "You don't have permission", HttpStatus.FORBIDDEN),
     EXISTED_DATA(5055, "Data already exists", HttpStatus.BAD_REQUEST);
