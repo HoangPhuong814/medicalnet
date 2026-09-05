@@ -23,6 +23,9 @@ public enum ErrorCode {
     SCHEDULE_EXISTED(3001, "Work schedule already exists for this date", HttpStatus.BAD_REQUEST),
     SCHEDULE_NOT_FOUND(3002, "Work schedule not found", HttpStatus.NOT_FOUND),
     INVALID_TIME_RANGE(3003, "Start time must be before end time", HttpStatus.BAD_REQUEST),
+    SLOT_NOT_FOUND(3004, "Schedule slot not found", HttpStatus.NOT_FOUND),
+    SLOT_ALREADY_BOOKED(3005, "This schedule slot has already been booked", HttpStatus.CONFLICT),
+    APPOINTMENT_NOT_FOUND(4001, "Appointment not found", HttpStatus.NOT_FOUND),
     UNAUTHENTICATED(5555,"Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(5050, "You don't have permission", HttpStatus.FORBIDDEN),
     EXISTED_DATA(5055, "Data already exists", HttpStatus.BAD_REQUEST);
