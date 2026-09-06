@@ -29,4 +29,7 @@ public class ScheduleSlot {
 
     @Column(nullable = false)
     LocalTime endTime;
+
+    @Version
+    Integer version;
 }
