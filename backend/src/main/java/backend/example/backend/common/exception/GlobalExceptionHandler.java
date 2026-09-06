@@ -45,6 +45,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(apiResponse);
     }
 
+    @ExceptionHandler(value = {
+            org.springframework.orm.ObjectOptimisticLockingFailureException.class,
+            jakarta.persistence.OptimisticLockException.class
+    })
+    ResponseEntity<ApiResponse<?>> handlingOptimisticLockException(Exception e) {
+        ErrorCode errorCode = ErrorCode.SLOT_ALREADY_BOOKED;
+        return ResponseEntity.status(errorCode.getStatusCode())
+                .body(ApiResponse.builder()
+                        .code(errorCode.getCode())
+                        .message(errorCode.getMessage())
+                        .build());
+    }
+
     @ExceptionHandler(value = Exception.class)
     ResponseEntity<ApiResponse<?>> handlingException(Exception e) {
         ErrorCode errorCode = ErrorCode.UNCATEGORIZED_EXCEPTION;
