@@ -26,6 +26,9 @@ public enum ErrorCode {
     SLOT_NOT_FOUND(3004, "Schedule slot not found", HttpStatus.NOT_FOUND),
     SLOT_ALREADY_BOOKED(3005, "This schedule slot has already been booked", HttpStatus.CONFLICT),
     APPOINTMENT_NOT_FOUND(4001, "Appointment not found", HttpStatus.NOT_FOUND),
+    APPOINTMENT_NOT_CONFIRMED(4002, "Appointment must be CONFIRMED to create medical record", HttpStatus.BAD_REQUEST),
+    MEDICAL_RECORD_EXISTED(4003, "Medical record already exists for this appointment", HttpStatus.BAD_REQUEST),
+    MEDICAL_RECORD_NOT_FOUND(4004, "Medical record not found", HttpStatus.NOT_FOUND),
     UNAUTHENTICATED(5555,"Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(5050, "You don't have permission", HttpStatus.FORBIDDEN),
     EXISTED_DATA(5055, "Data already exists", HttpStatus.BAD_REQUEST);
