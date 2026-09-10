@@ -3,6 +3,7 @@ package backend.example.backend.unit.service;
 import backend.example.backend.common.exception.AppException;
 import backend.example.backend.common.exception.ErrorCode;
 import backend.example.backend.module.appointment.*;
+import backend.example.backend.module.appointment.dto.AppointmentCreateRequest;
 import backend.example.backend.module.appointment.dto.AppointmentResponse;
 import backend.example.backend.module.doctor.Doctor;
 import backend.example.backend.module.schedule.ScheduleSlot;
@@ -10,6 +11,9 @@ import backend.example.backend.module.schedule.ScheduleSlotRepository;
 import backend.example.backend.module.schedule.WorkSchedule;
 import backend.example.backend.module.user.User;
 import backend.example.backend.module.user.UserRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,15 +44,21 @@ class AppointmentServiceTest {
     private UserRepository userRepository;
     @Mock
     private AppointmentMapper appointmentMapper;
+    @Mock
+    private EntityManager entityManager;
+
     @InjectMocks
     private AppointmentService appointmentService;
+
     private User mockPatient;
     private Doctor mockDoctor;
     private WorkSchedule mockSchedule;
     private ScheduleSlot mockSlot;
     private Appointment mockAppointment;
     private AppointmentResponse mockResponse;
+
     @BeforeEach
+
     void setUp()
     {
         mockPatient = new User();
@@ -100,6 +110,12 @@ class AppointmentServiceTest {
                 .build();
     }
 
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
+
     private void mockSecurityContext(String email)
     {
         Authentication authentication = mock(Authentication.class);
@@ -108,6 +124,84 @@ class AppointmentServiceTest {
 
         SecurityContextHolder.setContext(securityContext);
         when(authentication.getName()).thenReturn(email);
+    }
+
+    @Test
+    void testCreateAppointment_Success() {
+        AppointmentCreateRequest request = AppointmentCreateRequest.builder()
+                .slotId(mockSlot.getId())
+                .reason("Đau đầu chóng mặt")
+                .build();
+
+        mockSecurityContext(mockPatient.getEmail());
+
+        when(userRepository.findByEmail(mockPatient.getEmail()))
+                .thenReturn(Optional.of(mockPatient));
+        when(scheduleSlotRepository.findById(mockSlot.getId()))
+                .thenReturn(Optional.of(mockSlot));
+
+        when(appointmentRepository.existsBySlotIdAndStatusIn(eq(mockSlot.getId()), anyList()))
+                .thenReturn(false);
+        when(appointmentRepository.save(any(Appointment.class)))
+                .thenReturn(mockAppointment);
+        when(appointmentMapper.toAppointmentResponse(any(Appointment.class)))
+                .thenReturn(mockResponse);
+
+        var result = appointmentService.createAppointment(request);
+
+        assertNotNull(result);
+        assertEquals(mockResponse, result);
+
+        verify(entityManager).lock(mockSlot, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        verify(appointmentRepository).save(any(Appointment.class));
+    }
+
+    @Test
+    void testCreateAppointment_AlreadyBooked_ThrowsException() {
+        AppointmentCreateRequest request = AppointmentCreateRequest.builder()
+                .slotId(mockSlot.getId())
+                .reason("Đau họng")
+                .build();
+
+        mockSecurityContext(mockPatient.getEmail());
+
+        when(userRepository.findByEmail(mockPatient.getEmail()))
+                .thenReturn(Optional.of(mockPatient));
+        when(scheduleSlotRepository.findById(mockSlot.getId()))
+                .thenReturn(Optional.of(mockSlot));
+
+        when(appointmentRepository.existsBySlotIdAndStatusIn(eq(mockSlot.getId()), anyList()))
+                .thenReturn(true);
+
+        AppException exception = assertThrows(AppException.class, () -> {
+            appointmentService.createAppointment(request);
+        });
+
+        assertEquals(ErrorCode.SLOT_ALREADY_BOOKED, exception.getErrorCode());
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+    }
+
+    @Test
+    void testCreateAppointment_PastDate_ThrowsException() {
+        mockSchedule.setWorkDate(LocalDate.now().minusDays(1));
+
+        AppointmentCreateRequest request = AppointmentCreateRequest.builder()
+                .slotId(mockSlot.getId())
+                .build();
+
+        mockSecurityContext(mockPatient.getEmail());
+
+        when(userRepository.findByEmail(mockPatient.getEmail()))
+                .thenReturn(Optional.of(mockPatient));
+        when(scheduleSlotRepository.findById(mockSlot.getId()))
+                .thenReturn(Optional.of(mockSlot));
+
+        AppException exception = assertThrows(AppException.class, () -> {
+            appointmentService.createAppointment(request);
+        });
+
+        assertEquals(ErrorCode.INVALID_TIME_RANGE, exception.getErrorCode());
+        verify(appointmentRepository, never()).save(any(Appointment.class));
     }
 
 
