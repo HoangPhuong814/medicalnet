@@ -24,10 +24,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -108,6 +108,88 @@ class AppointmentServiceTest {
 
         SecurityContextHolder.setContext(securityContext);
         when(authentication.getName()).thenReturn(email);
+    }
+
+
+    @Test
+    void testGetMyBookings_Success()
+    {
+        List<Appointment> appointments = List.of(mockAppointment);
+        List<AppointmentResponse> mockResponses = List.of(mockResponse);
+
+        mockSecurityContext(mockPatient.getEmail());
+        mockPatient.setRoles(Collections.emptySet());
+
+        when(userRepository.findByEmail(mockPatient.getEmail()))
+                .thenReturn(Optional.ofNullable(mockPatient));
+
+        when(appointmentRepository.findAllByPatientIdOrderByCreatedAtDesc(mockPatient.getId()))
+                .thenReturn(appointments);
+        when(appointmentMapper.toListAppointmentResponse(appointments))
+                .thenReturn(mockResponses);
+
+        var rs = appointmentService.getMyBookings();
+        assertEquals(mockResponses, rs);
+
+        verify(userRepository).findByEmail(mockPatient.getEmail());
+        verify(appointmentRepository).findAllByPatientIdOrderByCreatedAtDesc(mockPatient.getId());
+        verify(appointmentMapper).toListAppointmentResponse(appointments);
+    }
+
+    @Test
+    void testGetMyBookings_UserNotFound_ThrowsException() {
+        mockSecurityContext("unknown@gmail.com");
+
+        when(userRepository.findByEmail("unknown@gmail.com"))
+                .thenReturn(Optional.empty());
+
+        AppException exception = assertThrows(AppException.class, () -> {
+            appointmentService.getMyBookings();
+        });
+
+        assertEquals(ErrorCode.USER_NOT_EXISTED, exception.getErrorCode());
+
+        verify(appointmentRepository, never()).findAllByPatientIdOrderByCreatedAtDesc(anyString());
+        verify(appointmentMapper, never()).toListAppointmentResponse(anyList());
+    }
+
+    @Test
+    void testGetDoctorAppointments_Success() {
+        Long doctorId = mockDoctor.getId();
+        List<Appointment> appointments = List.of(mockAppointment);
+        List<AppointmentResponse> mockResponses = List.of(mockResponse);
+
+        when(appointmentRepository.findAllByDoctorIdOrderByCreatedAtDesc(doctorId))
+                .thenReturn(appointments);
+        when(appointmentMapper.toListAppointmentResponse(appointments))
+                .thenReturn(mockResponses);
+
+        var result = appointmentService.getDoctorAppointments(doctorId);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals(mockResponses, result);
+
+        verify(appointmentRepository).findAllByDoctorIdOrderByCreatedAtDesc(doctorId);
+        verify(appointmentMapper).toListAppointmentResponse(appointments);
+    }
+
+    @Test
+    void testGetDoctorAppointments_EmptyList() {
+        Long doctorId = mockDoctor.getId();
+
+        when(appointmentRepository.findAllByDoctorIdOrderByCreatedAtDesc(doctorId))
+                .thenReturn(Collections.emptyList());
+        when(appointmentMapper.toListAppointmentResponse(Collections.emptyList()))
+                .thenReturn(Collections.emptyList());
+
+        var result = appointmentService.getDoctorAppointments(doctorId);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+
+        verify(appointmentRepository).findAllByDoctorIdOrderByCreatedAtDesc(doctorId);
+        verify(appointmentMapper).toListAppointmentResponse(Collections.emptyList());
     }
 
     @Test
