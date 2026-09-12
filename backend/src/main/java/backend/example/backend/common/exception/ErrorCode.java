@@ -29,9 +29,14 @@ public enum ErrorCode {
     APPOINTMENT_NOT_CONFIRMED(4002, "Appointment must be CONFIRMED to create medical record", HttpStatus.BAD_REQUEST),
     MEDICAL_RECORD_EXISTED(4003, "Medical record already exists for this appointment", HttpStatus.BAD_REQUEST),
     MEDICAL_RECORD_NOT_FOUND(4004, "Medical record not found", HttpStatus.NOT_FOUND),
+    APPOINTMENT_NOT_COMPLETED(5001, "Only completed appointments can be reviewed", HttpStatus.BAD_REQUEST),
+    REVIEW_ALREADY_EXISTS(5002, "This appointment has already been reviewed", HttpStatus.CONFLICT),
+    REVIEW_NOT_FOUND(5003, "Review not found", HttpStatus.NOT_FOUND),
     UNAUTHENTICATED(5555,"Unauthenticated", HttpStatus.UNAUTHORIZED),
     UNAUTHORIZED(5050, "You don't have permission", HttpStatus.FORBIDDEN),
-    EXISTED_DATA(5055, "Data already exists", HttpStatus.BAD_REQUEST);
+    EXISTED_DATA(5055, "Data already exists", HttpStatus.BAD_REQUEST),
+    INVALID_OTP(1010, "Invalid or expired OTP", HttpStatus.BAD_REQUEST),
+    PASSWORD_NOT_MATCH(1008, "New password and confirm password do not match", HttpStatus.BAD_REQUEST);
 
     private int code;
     private String message;

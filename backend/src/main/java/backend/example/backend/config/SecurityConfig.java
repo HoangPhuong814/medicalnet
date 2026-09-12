@@ -25,11 +25,12 @@ import javax.crypto.SecretKeyFactory;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final String[] PUBLIC_POST_ENDPOINTS = {
-        "/auth/login", "/auth/logout", "/auth/introspect", "/auth/refresh", "/users/create"
+        "/auth/login", "/auth/logout", "/auth/introspect", "/auth/refresh", "/users/create",
+        "/auth/forgot-password", "/auth/reset-password"
     };
 
     private final String[] PUBLIC_GET_ENDPOINTS = {
-        "/ping", "/specialities", "/specialities/**", "/doctors", "/doctors/**", "/schedules/**"
+        "/ping", "/specialities", "/specialities/**", "/doctors", "/doctors/**", "/schedules/**", "/reviews/doctor/**"
     };
 
     private final CustomJWTDecoder customJWTDecoder;
