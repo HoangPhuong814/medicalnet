@@ -30,7 +30,8 @@ public class SecurityConfig {
     };
 
     private final String[] PUBLIC_GET_ENDPOINTS = {
-        "/ping", "/specialities", "/specialities/**", "/doctors", "/doctors/**", "/schedules/**", "/reviews/doctor/**"
+        "/ping", "/specialities", "/specialities/**", "/doctors", "/doctors/**", "/schedules/**", "/reviews/doctor/**",
+        "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**"
     };
 
     private final CustomJWTDecoder customJWTDecoder;
