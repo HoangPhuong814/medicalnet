@@ -6,6 +6,7 @@ import com.nimbusds.jose.JOSEException;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -19,12 +20,15 @@ import java.text.ParseException;
 import java.util.Objects;
 
 @Component
-@RequiredArgsConstructor
 public class CustomJWTDecoder implements JwtDecoder {
     @Value("${jwt.signer-key}")
     String signerKey;
     private final AuthenticationService authenticationService;
     private NimbusJwtDecoder nimbusJwtDecoder = null;
+
+    public CustomJWTDecoder(@Lazy AuthenticationService authenticationService) {
+        this.authenticationService = authenticationService;
+    }
 
     @Override
     public Jwt decode(String token) throws JwtException {
