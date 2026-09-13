@@ -5,6 +5,7 @@ import backend.example.backend.common.exception.ErrorCode;
 import backend.example.backend.module.auth.dto.*;
 import backend.example.backend.module.user.User;
 import backend.example.backend.module.user.UserRepository;
+import backend.example.backend.module.notification.EmailService;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
@@ -19,12 +20,14 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Random;
 import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +41,8 @@ public class AuthenticationService {
     @Value("${jwt.signer-key}")
     String signerKey;
     StringRedisTemplate stringRedisTemplate;
+    EmailService emailService;
+    PasswordEncoder passwordEncoder;
 
     public IntrospectResponse introspect(IntrospectRequest request) throws ParseException, JOSEException {
         var token = request.getToken();
@@ -180,5 +185,38 @@ public class AuthenticationService {
         }
 
         return stringJoiner.toString();
+    }
+
+    public void forgotPassword(ForgotPasswordRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        //render 6 num OTP
+        String otp = String.format("%06d", new Random().nextInt(999999));
+
+        //redis 5min Ttl
+        stringRedisTemplate.opsForValue().set("OTP:" + request.getEmail(), otp, 5, TimeUnit.MINUTES);
+
+        emailService.sendOtpEmail(request.getEmail(), otp);
+    }
+
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new AppException(ErrorCode.PASSWORD_NOT_MATCH);
+        }
+
+        String cachedOtp = stringRedisTemplate.opsForValue().get("OTP:" + request.getEmail());
+        if (cachedOtp == null || !cachedOtp.equals(request.getOtp())) {
+            throw new AppException(ErrorCode.INVALID_OTP);
+        }
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        stringRedisTemplate.delete("OTP:" + request.getEmail());
     }
 }
