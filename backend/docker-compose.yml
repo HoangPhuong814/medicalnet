@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: 1108
       POSTGRES_DB: medical_net
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       # Mount volume để không bị mất dữ liệu khi xóa container
       - postgres_data:/var/lib/postgresql/data
