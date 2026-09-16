@@ -53,6 +53,35 @@ public class UserService {
         return userMapper.toUserResponse(user);
     }
 
+    public UserResponse getMyInfo()
+    {
+        var context = org.springframework.security.core.context.SecurityContextHolder.getContext();
+        String email = context.getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        return userMapper.toUserResponse(user);
+    }
+
+    public UserResponse updateMyInfo(UserUpdateRequest request)
+    {
+        var context = org.springframework.security.core.context.SecurityContextHolder.getContext();
+        String email = context.getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        String currentPassword = user.getPassword();
+        userMapper.updateUser(user, request);
+
+        if (request.getPassword() != null && !request.getPassword().trim().isEmpty())
+        {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        } else {
+            user.setPassword(currentPassword);
+        }
+
+        return userMapper.toUserResponse(userRepository.save(user));
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getAllUsers()
     {
@@ -64,11 +93,14 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
+        String currentPassword = user.getPassword();
         userMapper.updateUser(user, request);
 
         if (request.getPassword() != null && !request.getPassword().trim().isEmpty())
         {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
+        } else {
+            user.setPassword(currentPassword);
         }
 
         return userMapper.toUserResponse(userRepository.save(user));

@@ -14,5 +14,6 @@ public interface UserMapper {
     UserResponse toUserResponse(User user);
     List<UserResponse> toListUserResponse(List<User> users);
 
+    @org.mapstruct.Mapping(target = "password", ignore = true)
     void updateUser(@MappingTarget User user, UserUpdateRequest request);
 }
