@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { doctorApi } from '../../api/doctorApi';
 import { appointmentApi } from '../../api/appointmentApi';
+import { reviewApi } from '../../api/reviewApi';
 import { useAuth } from '../../context/AuthContext';
 import DoctorAvatar from '../../components/common/DoctorAvatar';
 
@@ -16,6 +17,9 @@ export default function DoctorDetailPage() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [reason, setReason] = useState('');
 
+  const [reviews, setReviews] = useState([]);
+  const [ratingSummary, setRatingSummary] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
@@ -24,15 +28,19 @@ export default function DoctorDetailPage() {
   useEffect(() => {
     const fetchDoctorData = async () => {
       try {
-        const [docData, scheduleData] = await Promise.all([
+        const [docData, scheduleData, ratingData, reviewsData] = await Promise.all([
           doctorApi.getDoctorById(id),
           doctorApi.getDoctorUpcomingSchedules(id),
+          reviewApi.getDoctorRatingSummary(id).catch(() => null),
+          reviewApi.getReviewsByDoctorId(id).catch(() => []),
         ]);
         setDoctor(docData);
         setSchedules(scheduleData || []);
         if (scheduleData && scheduleData.length > 0) {
           setSelectedSchedule(scheduleData[0]);
         }
+        setRatingSummary(ratingData);
+        setReviews(reviewsData || []);
       } catch (err) {
         setError('Không thể tải thông tin bác sĩ hoặc lịch làm việc.');
       } finally {
@@ -163,7 +171,15 @@ export default function DoctorDetailPage() {
                   {doctor.speciality?.name}
                 </span>
                 <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-900/70 backdrop-blur-md text-amber-300 flex items-center gap-1 shadow-sm">
-                  <i className="fa-solid fa-star text-[10px]"></i> 4.9
+                  <i className="fa-solid fa-star text-[10px]"></i>{' '}
+                  {ratingSummary && ratingSummary.totalReviews > 0
+                    ? Number(ratingSummary.averageRating).toFixed(1)
+                    : '5.0'}
+                  {ratingSummary && ratingSummary.totalReviews > 0 && (
+                    <span className="text-[10px] text-slate-300 font-normal">
+                      ({ratingSummary.totalReviews})
+                    </span>
+                  )}
                 </span>
               </div>
 
@@ -422,6 +438,104 @@ export default function DoctorDetailPage() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Patient Reviews & Ratings Section */}
+      <div className="bg-white p-6 sm:p-7 rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.03)] space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-slate-100 gap-4">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <i className="fa-solid fa-star-half-stroke text-amber-500"></i>
+              Đánh giá & Nhận xét từ Bệnh nhân
+            </h2>
+            <p className="text-xs text-slate-500 mt-1">
+              Phản hồi thực tế từ những bệnh nhân đã hoàn tất buổi khám cùng bác sĩ
+            </p>
+          </div>
+          {/* Summary pill */}
+          <div className="flex items-center gap-3 bg-slate-50 border border-slate-200/80 px-4 py-2 rounded-2xl self-start sm:self-auto">
+            <div className="text-2xl font-extrabold text-slate-900 leading-none">
+              {ratingSummary && ratingSummary.totalReviews > 0
+                ? Number(ratingSummary.averageRating).toFixed(1)
+                : '5.0'}
+            </div>
+            <div className="space-y-0.5">
+              <div className="flex items-center text-amber-400 text-xs">
+                {[1, 2, 3, 4, 5].map((star) => {
+                  const rating = ratingSummary && ratingSummary.totalReviews > 0 ? ratingSummary.averageRating : 5;
+                  return (
+                    <i
+                      key={star}
+                      className={`fa-solid fa-star ${star <= Math.round(rating) ? 'text-amber-400' : 'text-slate-200'}`}
+                    ></i>
+                  );
+                })}
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium">
+                {ratingSummary?.totalReviews || 0} lượt đánh giá
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {reviews.length === 0 ? (
+          <div className="py-10 text-center space-y-2.5">
+            <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-500 mx-auto flex items-center justify-center text-xl">
+              <i className="fa-regular fa-comment-dots"></i>
+            </div>
+            <h4 className="text-xs font-bold text-slate-700">Chưa có đánh giá nào cho bác sĩ</h4>
+            <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
+              Bệnh nhân sau khi hoàn tất buổi khám có thể gửi đánh giá và nhận xét trong mục "Lịch hẹn của tôi".
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {reviews.map((rev) => (
+              <div
+                key={rev.id}
+                className="p-4 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col justify-between space-y-3"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-teal-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                        {rev.patientName ? rev.patientName.charAt(0).toUpperCase() : 'BN'}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-slate-800">
+                            {rev.patientName || 'Bệnh nhân'}
+                          </span>
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                            <i className="fa-solid fa-check text-[8px]"></i> Đã khám
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-slate-400 block">
+                          {rev.createdAt ? new Date(rev.createdAt).toLocaleDateString('vi-VN') : ''}
+                        </span>
+                      </div>
+                    </div>
+                    {/* Stars */}
+                    <div className="flex items-center text-amber-400 text-xs">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <i
+                          key={s}
+                          className={`fa-solid fa-star text-[11px] ${s <= rev.rating ? 'text-amber-400' : 'text-slate-200'}`}
+                        ></i>
+                      ))}
+                    </div>
+                  </div>
+
+                  {rev.comment && (
+                    <p className="text-xs text-slate-700 mt-2.5 leading-relaxed bg-white p-3 rounded-xl border border-slate-100 italic">
+                      "{rev.comment}"
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
