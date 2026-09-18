@@ -65,6 +65,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUser = (updatedUser) => {
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  };
+
+  const refreshUser = async () => {
+    try {
+      const userInfo = await authApi.getMyInfo();
+      updateUser(userInfo);
+      return userInfo;
+    } catch (err) {
+      return null;
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -83,6 +98,8 @@ export const AuthProvider = ({ children }) => {
         loading,
         login,
         logout,
+        updateUser,
+        refreshUser,
       }}
     >
       {children}
