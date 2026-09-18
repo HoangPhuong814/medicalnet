@@ -52,7 +52,7 @@ export default function DoctorCard({ doctor }) {
         <div className="absolute top-2.5 right-2.5">
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/90 backdrop-blur-md text-slate-900 text-[11px] font-extrabold shadow-sm border border-white/70">
             <i className="fa-solid fa-star text-amber-400 text-[10px]"></i>
-            4.9
+            {doctor.averageRating ? Number(doctor.averageRating).toFixed(1) : (doctor.rating || '4.9')}
           </span>
         </div>
 

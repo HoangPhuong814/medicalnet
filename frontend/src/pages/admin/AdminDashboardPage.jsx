@@ -125,6 +125,15 @@ export default function AdminDashboardPage() {
             </span>
           </button>
 
+          {/* Manage Doctors & Users Link */}
+          <Link
+            to="/admin/users"
+            className="px-4 py-2 rounded-full bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold shadow-xs transition-all duration-200 flex items-center gap-1.5"
+          >
+            <i className="fa-solid fa-users-gear text-[11px]"></i>
+            <span>Quản lý Bác sĩ & Users</span>
+          </Link>
+
           {/* Export Report Pill */}
           <button
             onClick={() => alert('Chức năng xuất báo cáo PDF/Excel đang được tạo...')}
