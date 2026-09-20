@@ -12,13 +12,18 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 import MyAppointmentsPage from './pages/patient/MyAppointmentsPage';
+import MyMedicalRecordsPage from './pages/patient/MyMedicalRecordsPage';
 import DoctorSchedulePage from './pages/doctor/DoctorSchedulePage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import AdminUsersPage from './pages/admin/AdminUsersPage';
+import ProfilePage from './pages/profile/ProfilePage';
+import ToastNotification from './components/notification/ToastNotification';
 
 export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
+      <ToastNotification />
       <main className="flex-1">
         <Routes>
           {/* Public Routes */}
@@ -30,9 +35,15 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
+          {/* Common Authenticated Routes */}
+          <Route element={<ProtectedRoute allowedRoles={['PATIENT', 'DOCTOR', 'ADMIN', 'USER']} />}>
+            <Route path="/profile" element={<ProfilePage />} />
+          </Route>
+
           {/* Patient Protected Routes */}
           <Route element={<ProtectedRoute allowedRoles={['PATIENT', 'ADMIN']} />}>
             <Route path="/my-appointments" element={<MyAppointmentsPage />} />
+            <Route path="/my-medical-records" element={<MyMedicalRecordsPage />} />
           </Route>
 
           {/* Doctor Protected Routes */}
@@ -43,6 +54,7 @@ export default function App() {
           {/* Admin Protected Routes */}
           <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
             <Route path="/admin" element={<AdminDashboardPage />} />
+            <Route path="/admin/users" element={<AdminUsersPage />} />
           </Route>
 
           {/* Fallback */}
