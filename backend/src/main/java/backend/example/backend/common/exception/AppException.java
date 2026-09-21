@@ -1,12 +1,15 @@
 package backend.example.backend.common.exception;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-@AllArgsConstructor
-public class AppException extends RuntimeException{
-    private ErrorCode errorCode;
+public class AppException extends RuntimeException {
+    private final ErrorCode errorCode;
+
+    public AppException(ErrorCode errorCode) {
+        super(errorCode.getMessage());
+        this.errorCode = errorCode;
+    }
 
     public AppException(String message, ErrorCode errorCode) {
         super(message);
